@@ -5,6 +5,8 @@ import UsersPage from './pages/UsersPage'
 import ContentPage from './pages/ContentPage'
 import FeedPage from './pages/FeedPage'
 import SettingsPage from './pages/SettingsPage'
+import BadgesPage from './pages/BadgesPage'
+import UserDetailPage from './pages/UserDetailPage'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +22,10 @@ const router = createBrowserRouter([
         element: <UsersPage />,
       },
       {
+        path: 'users/:id',
+        element: <UserDetailPage />,
+      },
+      {
         path: 'content',
         element: <ContentPage />,
       },
@@ -30,6 +36,10 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: 'badges',
+        element: <BadgesPage />,
       },
     ],
   },

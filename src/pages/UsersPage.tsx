@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useStore } from '../store/useStore'
-import { Search, Filter, MoreVertical } from 'lucide-react'
+import { Search, Filter, MoreVertical, Eye, Trash2, Ban } from 'lucide-react'
+import { Menu, Transition } from '@headlessui/react'
+import { useNavigate } from 'react-router-dom'
 
 export default function UsersPage() {
   const { users } = useStore()
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const navigate = useNavigate()
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase())
@@ -45,7 +48,7 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
@@ -83,9 +86,63 @@ export default function UsersPage() {
                     {user.lastActive}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-gray-400 hover:text-gray-600 p-2">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                    <Menu as="div" className="relative inline-block text-left">
+                      <div>
+                        <Menu.Button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
+                          <MoreVertical className="w-4 h-4" />
+                        </Menu.Button>
+                      </div>
+                      <Transition
+                        as={Fragment}
+                        enter="transition ease-out duration-100"
+                        enterFrom="transform opacity-0 scale-95"
+                        enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75"
+                        leaveFrom="transform opacity-100 scale-100"
+                        leaveTo="transform opacity-0 scale-95"
+                      >
+                        <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                          <div className="px-1 py-1">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => navigate(`/users/${user.id}`)}
+                                  className={`${active ? 'bg-blue-50 text-blue-600' : 'text-gray-900'
+                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                                  View Details
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </div>
+                          <div className="px-1 py-1">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={`${active ? 'bg-orange-50 text-orange-600' : 'text-gray-900'
+                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                >
+                                  <Ban className="mr-2 h-4 w-4" aria-hidden="true" />
+                                  Suspend User
+                                </button>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  className={`${active ? 'bg-red-50 text-red-600' : 'text-gray-900'
+                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                                  Delete
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Transition>
+                    </Menu>
                   </td>
                 </tr>
               ))

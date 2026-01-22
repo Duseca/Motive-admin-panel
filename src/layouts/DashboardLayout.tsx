@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, MessageSquareQuote, Settings, Radio } from 'lucide-react'
+import { LayoutDashboard, Users, MessageSquareQuote, Settings, Radio, Award } from 'lucide-react'
 
 export function DashboardLayout() {
   const location = useLocation()
@@ -9,6 +9,7 @@ export function DashboardLayout() {
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Content', path: '/content', icon: MessageSquareQuote },
     { name: 'Feed', path: '/feed', icon: Radio },
+    { name: 'Badges', path: '/badges', icon: Award },
     { name: 'Settings', path: '/settings', icon: Settings },
   ]
 
@@ -30,8 +31,8 @@ export function DashboardLayout() {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
-                    ? 'bg-blue-50 text-blue-600 shadow-sm'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-blue-50 text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
