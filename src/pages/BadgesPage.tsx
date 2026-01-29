@@ -1,22 +1,44 @@
 import { useState } from 'react'
-import { Plus, X, Upload } from 'lucide-react'
+import { Plus, X, Upload, Trophy } from 'lucide-react'
 import { toast } from 'react-toastify'
+
+interface BadgeCondition {
+  type: 'challenges_count'
+  value: number
+}
 
 interface Badge {
   id: string
   name: string
   imageUrl: string
+  condition: BadgeCondition
 }
 
 export default function BadgesPage() {
   const [badges, setBadges] = useState<Badge[]>([
-    { id: '1', name: 'Early Bird', imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' },
-    { id: '2', name: 'Week Warrior', imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png' },
-    { id: '3', name: 'Month Master', imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png' },
+    {
+      id: '1',
+      name: 'Early Bird',
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+      condition: { type: 'challenges_count', value: 5 }
+    },
+    {
+      id: '2',
+      name: 'Week Warrior',
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135768.png',
+      condition: { type: 'challenges_count', value: 10 }
+    },
+    {
+      id: '3',
+      name: 'Month Master',
+      imageUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
+      condition: { type: 'challenges_count', value: 30 }
+    },
   ])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newBadgeName, setNewBadgeName] = useState('')
   const [newBadgeImage, setNewBadgeImage] = useState('')
+  const [challengesCount, setChallengesCount] = useState<number>(1)
 
   const handleAddBadge = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,11 +51,16 @@ export default function BadgesPage() {
       id: Date.now().toString(),
       name: newBadgeName,
       imageUrl: newBadgeImage,
+      condition: {
+        type: 'challenges_count',
+        value: challengesCount
+      }
     }
 
     setBadges([...badges, newBadge])
     setNewBadgeName('')
     setNewBadgeImage('')
+    setChallengesCount(1)
     setIsModalOpen(false)
     toast.success('Badge added successfully!')
   }
@@ -70,7 +97,13 @@ export default function BadgesPage() {
             <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center p-2">
               <img src={badge.imageUrl} alt={badge.name} className="w-full h-full object-contain" />
             </div>
-            <p className="font-medium text-gray-900 text-sm text-center">{badge.name}</p>
+            <div className="text-center">
+              <p className="font-medium text-gray-900 text-sm">{badge.name}</p>
+              <div className="flex items-center justify-center gap-1 mt-1 text-xs text-gray-500">
+                <Trophy className="w-3 h-3" />
+                <span>{badge.condition.value} Challenges</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -120,6 +153,20 @@ export default function BadgesPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Enter a direct image URL for the badge icon.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Condition: Challenges to Complete
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={challengesCount}
+                  onChange={(e) => setChallengesCount(parseInt(e.target.value) || 0)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">Number of challenges a user must complete to earn this badge.</p>
               </div>
 
               <div className="pt-2 flex gap-3">

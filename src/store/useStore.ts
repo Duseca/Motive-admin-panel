@@ -7,6 +7,9 @@ export interface User {
   challengeCategory: string
   streak: number
   lastActive: string
+  totalChallengesCompleted: number
+  avgCompletionTime: string
+  challengesByCategory: Record<string, number>
 }
 
 export interface Category {
@@ -57,8 +60,35 @@ interface StoreState {
 
 export const useStore = create<StoreState>((set) => ({
   users: [
-    { id: '1', name: 'Shehab', email: 'shehab@example.com', challengeCategory: 'Procrastination', streak: 5, lastActive: '2026-01-21' },
-    { id: '2', name: 'User 2', email: 'user2@example.com', challengeCategory: 'Laziness', streak: 2, lastActive: '2026-01-20' },
+    {
+      id: '1',
+      name: 'Shehab',
+      email: 'shehab@example.com',
+      challengeCategory: 'Procrastination',
+      streak: 5,
+      lastActive: '2026-01-21',
+      totalChallengesCompleted: 45,
+      avgCompletionTime: '22m',
+      challengesByCategory: {
+        'Procrastination': 20,
+        'Laziness': 10,
+        'Eating Habits': 15
+      }
+    },
+    {
+      id: '2',
+      name: 'User 2',
+      email: 'user2@example.com',
+      challengeCategory: 'Laziness',
+      streak: 2,
+      lastActive: '2026-01-20',
+      totalChallengesCompleted: 12,
+      avgCompletionTime: '35m',
+      challengesByCategory: {
+        'Laziness': 8,
+        'Introversion': 4
+      }
+    },
   ],
   categories: [
     { id: '1', name: 'Procrastination', color: 'bg-yellow-100 text-yellow-800' },
