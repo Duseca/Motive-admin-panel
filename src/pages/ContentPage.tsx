@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useStore, Category, Challenge, Quote } from '../store/useStore'
-import { Plus, Trash2, Edit2 } from 'lucide-react'
+import { useStore } from '../store/useStore'
+import { Plus, Trash2 } from 'lucide-react'
 
 export default function ContentPage() {
   const [activeTab, setActiveTab] = useState<'categories' | 'challenges' | 'quotes'>('categories')
@@ -13,8 +13,8 @@ export default function ContentPage() {
             key={tab}
             onClick={() => setActiveTab(tab as any)}
             className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${activeTab === tab
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
           >
             {tab}
@@ -76,11 +76,13 @@ function ChallengesManager() {
   const { challenges, categories, addChallenge, deleteChallenge } = useStore()
   const [title, setTitle] = useState('')
   const [catId, setCatId] = useState(categories[0]?.id || '')
+  const [minTime, setMinTime] = useState(15)
 
   const handleAdd = () => {
     if (!title || !catId) return
-    addChallenge({ id: Date.now().toString(), categoryId: catId, title, icon: '⭐' })
+    addChallenge({ id: Date.now().toString(), categoryId: catId, title, icon: '⭐', minTime })
     setTitle('')
+    setMinTime(15)
   }
 
   return (
@@ -102,6 +104,19 @@ function ChallengesManager() {
             placeholder="Challenge Title"
             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm w-64"
           />
+          <select
+            value={minTime}
+            onChange={(e) => setMinTime(Number(e.target.value))}
+            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+          >
+            <option value={0}>No Min Time</option>
+            <option value={15}>15m</option>
+            <option value={30}>30m</option>
+            <option value={45}>45m</option>
+            <option value={60}>1h</option>
+            <option value={90}>1.5h</option>
+            <option value={120}>2h</option>
+          </select>
           <button onClick={handleAdd} className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700">
             <Plus className="w-4 h-4" /> Add
           </button>
@@ -116,7 +131,10 @@ function ChallengesManager() {
                 <span className="text-xl">{challenge.icon}</span>
                 <div>
                   <p className="font-medium text-gray-900">{challenge.title}</p>
-                  <p className="text-xs text-gray-500">{cat?.name}</p>
+                  <div className="flex gap-2 text-xs text-gray-500">
+                    <span>{cat?.name}</span>
+                    {challenge.minTime > 0 && <span>• Min: {challenge.minTime}m</span>}
+                  </div>
                 </div>
               </div>
               <button onClick={() => deleteChallenge(challenge.id)} className="text-red-400 hover:text-red-600">

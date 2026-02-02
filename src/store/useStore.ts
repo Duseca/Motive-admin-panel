@@ -23,6 +23,7 @@ export interface Challenge {
   categoryId: string
   title: string
   icon: string
+  minTime: number // in minutes
 }
 
 export interface Quote {
@@ -97,8 +98,8 @@ export const useStore = create<StoreState>((set) => ({
     { id: '4', name: 'Introversion', color: 'bg-indigo-100 text-indigo-800' },
   ],
   challenges: [
-    { id: '1', categoryId: '1', title: 'Wake up at 6 AM', icon: '⏰' },
-    { id: '2', categoryId: '2', title: 'Walk for 20 mins', icon: '🚶' },
+    { id: '1', categoryId: '1', title: 'Wake up at 6 AM', icon: '⏰', minTime: 0 },
+    { id: '2', categoryId: '2', title: 'Walk for 20 mins', icon: '🚶', minTime: 20 },
   ],
   quotes: [
     { id: '1', text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
