@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Plus, X, Upload, Trophy } from 'lucide-react'
+import { Plus, X, Upload, Trophy, Clock } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useStore } from '../store/useStore'
 
 interface BadgeCondition {
-  type: 'challenges_count'
+  type: 'challenges_count' | 'time_spent'
   value: number
 }
 
@@ -42,6 +42,8 @@ export default function BadgesPage() {
   const [newBadgeName, setNewBadgeName] = useState('')
   const [newBadgeImage, setNewBadgeImage] = useState('')
   const [challengesCount, setChallengesCount] = useState<number>(1)
+  const [timeSpent, setTimeSpent] = useState<number>(30)
+  const [conditionType, setConditionType] = useState<'challenges_count' | 'time_spent'>('challenges_count')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
 
   const handleAddBadge = (e: React.FormEvent) => {
@@ -56,8 +58,8 @@ export default function BadgesPage() {
       name: newBadgeName,
       imageUrl: newBadgeImage,
       condition: {
-        type: 'challenges_count',
-        value: challengesCount
+        type: conditionType,
+        value: conditionType === 'challenges_count' ? challengesCount : timeSpent
       },
       categoryId: selectedCategoryId
     }
@@ -66,6 +68,8 @@ export default function BadgesPage() {
     setNewBadgeName('')
     setNewBadgeImage('')
     setChallengesCount(1)
+    setTimeSpent(30)
+    setConditionType('challenges_count')
     setIsModalOpen(false)
     toast.success('Badge added successfully!')
   }
@@ -105,8 +109,17 @@ export default function BadgesPage() {
             <div className="text-center">
               <p className="font-medium text-gray-900 text-sm">{badge.name}</p>
               <div className="flex items-center justify-center gap-1 mt-1 text-xs text-gray-500">
-                <Trophy className="w-3 h-3" />
-                <span>{badge.condition.value} Challenges</span>
+                {badge.condition.type === 'challenges_count' ? (
+                  <>
+                    <Trophy className="w-3 h-3" />
+                    <span>{badge.condition.value} Challenges</span>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-3 h-3" />
+                    <span>{badge.condition.value} Mins</span>
+                  </>
+                )}
               </div>
               {badge.categoryId && (
                 <p className="text-xs text-blue-600 mt-1">
@@ -148,6 +161,34 @@ export default function BadgesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Condition Type
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConditionType('challenges_count')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border ${conditionType === 'challenges_count'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                  >
+                    Challenge Count
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConditionType('time_spent')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border ${conditionType === 'time_spent'
+                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                  >
+                    Time Spent
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category (Optional)
                 </label>
                 <select
@@ -185,16 +226,24 @@ export default function BadgesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Condition: Challenges to Complete
+                  {conditionType === 'challenges_count' ? 'Number of Challenges' : 'Minimum Time (Minutes)'}
                 </label>
                 <input
                   type="number"
                   min="1"
-                  value={challengesCount}
-                  onChange={(e) => setChallengesCount(parseInt(e.target.value) || 0)}
+                  value={conditionType === 'challenges_count' ? challengesCount : timeSpent}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0
+                    if (conditionType === 'challenges_count') setChallengesCount(val)
+                    else setTimeSpent(val)
+                  }}
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
-                <p className="text-xs text-gray-500 mt-1">Number of challenges a user must complete to earn this badge.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {conditionType === 'challenges_count'
+                    ? 'Number of challenges a user must complete to earn this badge.'
+                    : 'Total time a user must spend on challenges to earn this badge.'}
+                </p>
               </div>
 
               <div className="pt-2 flex gap-3">
