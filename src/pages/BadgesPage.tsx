@@ -182,7 +182,7 @@ export default function BadgesPage() {
                         : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                   >
-                    Time Spent
+                    Time till completion
                   </button>
                 </div>
               </div>
