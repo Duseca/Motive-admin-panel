@@ -226,7 +226,7 @@ export default function BadgesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {conditionType === 'challenges_count' ? 'Number of Challenges' : 'Minimum Time (Minutes)'}
+                  {conditionType === 'challenges_count' ? 'Number of Challenges' : 'Maximum Time (Minutes)'}
                 </label>
                 <input
                   type="number"
