@@ -1,18 +1,40 @@
-import { useState, Fragment } from 'react'
-import { useStore } from '../store/useStore'
-import { Search, Filter, MoreVertical, Eye, Trash2, Ban } from 'lucide-react'
+import { useState, Fragment, useEffect } from 'react'
+import { Search, Filter, MoreVertical, Eye, Trash2, Ban, RefreshCw, AlertCircle } from 'lucide-react'
 import { Menu, Transition } from '@headlessui/react'
 import { useNavigate } from 'react-router-dom'
+import { backendService } from '../services/backendService'
+import { Profile } from '../types/database'
 
 export default function UsersPage() {
-  const { users } = useStore()
+  const [users, setUsers] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const navigate = useNavigate()
 
+  const fetchUsers = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await backendService.getProfiles()
+      setUsers(data)
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || 'Failed to fetch users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = categoryFilter === 'All' || user.challengeCategory === categoryFilter
+    const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) || 
+                         user.email.toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = categoryFilter === 'All' || user.challenge_category === categoryFilter
     return matchesSearch && matchesCategory
   })
 
@@ -21,6 +43,13 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <h2 className="text-xl font-semibold text-gray-900">Registered Users</h2>
         <div className="flex gap-4">
+          <button 
+            onClick={fetchUsers}
+            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            title="Refresh"
+          >
+            <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -49,112 +78,137 @@ export default function UsersPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
-              <th className="px-6 py-4">User</th>
-              <th className="px-6 py-4">Main Challenge</th>
-              <th className="px-6 py-4">Current Streak</th>
-              <th className="px-6 py-4">Last Active</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-                        {user.name.charAt(0)}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-gray-500 font-medium">Loading user data...</p>
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Failed to load data</h3>
+            <p className="text-gray-600 mt-2 max-w-md mx-auto">{error}</p>
+            <button 
+              onClick={fetchUsers}
+              className="mt-6 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : (
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                <th className="px-6 py-4">User</th>
+                <th className="px-6 py-4">Main Challenge</th>
+                <th className="px-6 py-4">Current Streak</th>
+                <th className="px-6 py-4">Last Active</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm overflow-hidden">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            user.name.charAt(0)
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{user.name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-                      {user.challengeCategory}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-semibold text-gray-900">{user.streak} Days</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {user.lastActive}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <div>
-                        <Menu.Button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
-                          <MoreVertical className="w-4 h-4" />
-                        </Menu.Button>
-                      </div>
-                      <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-100"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                          <div className="px-1 py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  onClick={() => navigate(`/users/${user.id}`)}
-                                  className={`${active ? 'bg-blue-50 text-blue-600' : 'text-gray-900'
-                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                >
-                                  <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
-                                  View Details
-                                </button>
-                              )}
-                            </Menu.Item>
-                          </div>
-                          <div className="px-1 py-1">
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? 'bg-orange-50 text-orange-600' : 'text-gray-900'
-                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                >
-                                  <Ban className="mr-2 h-4 w-4" aria-hidden="true" />
-                                  Suspend User
-                                </button>
-                              )}
-                            </Menu.Item>
-                            <Menu.Item>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? 'bg-red-50 text-red-600' : 'text-gray-900'
-                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
-                                  Delete
-                                </button>
-                              )}
-                            </Menu.Item>
-                          </div>
-                        </Menu.Items>
-                      </Transition>
-                    </Menu>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                        {user.challenge_category || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-gray-900">{user.current_streak || 0} Days</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {user.updated_at ? new Date(user.updated_at).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Menu as="div" className="relative inline-block text-left">
+                        <div>
+                          <Menu.Button className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
+                            <MoreVertical className="w-4 h-4" />
+                          </Menu.Button>
+                        </div>
+                        <Transition
+                          as={Fragment}
+                          enter="transition ease-out duration-100"
+                          enterFrom="transform opacity-0 scale-95"
+                          enterTo="transform opacity-100 scale-100"
+                          leave="transition ease-in duration-75"
+                          leaveFrom="transform opacity-100 scale-100"
+                          leaveTo="transform opacity-0 scale-95"
+                        >
+                          <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                            <div className="px-1 py-1">
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    onClick={() => navigate(`/users/${user.id}`)}
+                                    className={`${active ? 'bg-blue-50 text-blue-600' : 'text-gray-900'
+                                      } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                                    View Details
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            </div>
+                            <div className="px-1 py-1">
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    className={`${active ? 'bg-orange-50 text-orange-600' : 'text-gray-900'
+                                      } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                  >
+                                    <Ban className="mr-2 h-4 w-4" aria-hidden="true" />
+                                    Suspend User
+                                  </button>
+                                )}
+                              </Menu.Item>
+                              <Menu.Item>
+                                {({ active }) => (
+                                  <button
+                                    className={`${active ? 'bg-red-50 text-red-600' : 'text-gray-900'
+                                      } group flex w-full items-center rounded-md px-2 py-2 text-sm transition-colors`}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                                    Delete
+                                  </button>
+                                )}
+                              </Menu.Item>
+                            </div>
+                          </Menu.Items>
+                        </Transition>
+                      </Menu>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    No users found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )
