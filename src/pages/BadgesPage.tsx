@@ -33,27 +33,34 @@ export default function BadgesPage() {
     fetchBadges()
   }, [])
 
-  const handleAddBadge = (e: React.FormEvent) => {
+  const handleAddBadge = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newBadgeName) return
-    const newItem: Badge = {
-      id: Date.now().toString(),
-      name: newBadgeName,
-      slug: newBadgeName.toLowerCase().replace(/\s+/g, '-'),
-      icon: 'award',
-      color: '#F59E0B',
-      image_url: newBadgeImage || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-      criteria_type: conditionType === 'challenges_count' ? 'total_challenges' : 'personal_best' as any,
-      criteria_value: conditionType === 'challenges_count' ? challengesCount : minTime,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    
+    setLoading(true)
+    try {
+      const criteria_type = conditionType === 'challenges_count' ? 'total_challenges' : 'personal_best';
+      
+      await backendService.createBadge({
+        name: newBadgeName,
+        slug: newBadgeName.toLowerCase().replace(/\s+/g, '-'),
+        icon: 'award',
+        color: '#F59E0B',
+        image_url: newBadgeImage || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+        criteria_type: criteria_type as any,
+        criteria_value: conditionType === 'challenges_count' ? challengesCount : minTime,
+        is_active: true
+      })
+      
+      await fetchBadges()
+      setNewBadgeName('')
+      setNewBadgeImage('')
+      setIsModalOpen(false)
+    } catch (err: any) {
+      alert('Failed to create badge: ' + err.message)
+    } finally {
+      setLoading(false)
     }
-    setBadges(prev => [newItem, ...prev])
-    setNewBadgeName('')
-    setNewBadgeImage('')
-    setIsModalOpen(false)
-    console.log('Badge added to local state (Frontend-only)')
   }
 
   return (
@@ -220,12 +227,12 @@ export default function BadgesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:bg-blue-300"
                 >
-                  Create Badge
+                  {loading ? 'Creating...' : 'Create Badge'}
                 </button>
               </div>
-              <p className="text-[10px] text-center text-gray-400 font-medium">✨ Visual demonstration only (Frontend state)</p>
             </form>
           </div>
         </div>

@@ -113,5 +113,16 @@ export const backendService = {
     
     if (error) throw error;
     return data || [];
+  },
+
+  async createBadge(badge: Partial<Badge>): Promise<Badge> {
+    const { data, error } = await supabase
+      .from('badges')
+      .insert([badge])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 };
