@@ -11,6 +11,11 @@ export default function BadgesPage() {
   const [newBadgeName, setNewBadgeName] = useState('')
   const [newBadgeImage, setNewBadgeImage] = useState('')
 
+  const [conditionType, setConditionType] = useState<'challenges_count' | 'time'>('challenges_count')
+  const [challengesCount, setChallengesCount] = useState(1)
+  const [minTime, setMinTime] = useState(1)
+  const [maxTime, setMaxTime] = useState(30)
+
   const fetchBadges = async () => {
     setLoading(true)
     setError(null)
@@ -38,8 +43,8 @@ export default function BadgesPage() {
       icon: 'award',
       color: '#F59E0B',
       image_url: newBadgeImage || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-      criteria_type: 'total_challenges',
-      criteria_value: 1,
+      criteria_type: conditionType === 'challenges_count' ? 'total_challenges' : 'personal_best' as any,
+      criteria_value: conditionType === 'challenges_count' ? challengesCount : minTime,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -81,6 +86,7 @@ export default function BadgesPage() {
             <div key={badge.id} className="group relative bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-3 hover:shadow-md transition-shadow">
               <button
                 className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                onClick={() => setBadges(prev => prev.filter(b => b.id !== badge.id))}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -102,7 +108,7 @@ export default function BadgesPage() {
                   ) : (
                     <>
                       <Clock className="w-3 h-3 text-blue-400" />
-                      <span>{badge.criteria_value} Count</span>
+                      <span>{badge.criteria_value} {badge.criteria_type === 'personal_best' ? 'Min' : 'Count'}</span>
                     </>
                   )}
                 </div>
@@ -118,7 +124,7 @@ export default function BadgesPage() {
         </div>
       )}
 
-      {/* Add Badge Modal (Visual Only) */}
+      {/* Add Badge Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
@@ -143,6 +149,52 @@ export default function BadgesPage() {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Condition Type</label>
+                <select 
+                  value={conditionType}
+                  onChange={(e) => setConditionType(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="challenges_count">Challenges Count</option>
+                  <option value="time">Time Based</option>
+                </select>
+              </div>
+
+              {conditionType === 'challenges_count' ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Number of Challenges</label>
+                  <input
+                    type="number"
+                    value={challengesCount}
+                    onChange={(e) => setChallengesCount(parseInt(e.target.value))}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Time (Min)</label>
+                    <input
+                      type="number"
+                      value={minTime}
+                      onChange={(e) => setMinTime(parseInt(e.target.value))}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Time (Min)</label>
+                    <input
+                      type="number"
+                      value={maxTime}
+                      onChange={(e) => setMaxTime(parseInt(e.target.value))}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                 <div className="flex gap-2">
@@ -173,7 +225,7 @@ export default function BadgesPage() {
                   Create Badge
                 </button>
               </div>
-              <p className="text-[10px] text-center text-gray-400">Note: Creation is disabled in this GET-only preview.</p>
+              <p className="text-[10px] text-center text-gray-400 font-medium">✨ Visual demonstration only (Frontend state)</p>
             </form>
           </div>
         </div>

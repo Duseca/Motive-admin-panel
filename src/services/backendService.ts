@@ -10,13 +10,39 @@ import {
 
 export const backendService = {
   async getProfiles(): Promise<Profile[]> {
+    
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        challenge_categories!main_challenge_category_id (
+          name
+        ),
+        user_challenges (
+          status,
+          challenges (
+            title
+          )
+        )
+      `)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+
+    // Process the data to set the 'challenge_category' virtual field
+    // We prioritize the title of an ongoing challenge, then fall back to the category name
+    const profiles = (data || []).map((p: any) => {
+      const ongoing = p.user_challenges?.find((uc: any) => uc.status === 'ongoing');
+      const challengeTitle = ongoing?.challenges?.title;
+      const categoryName = p.challenge_categories?.name;
+
+      return {
+        ...p,
+        challenge_category: challengeTitle || categoryName || 'N/A'
+      };
+    });
+
+    return profiles;
   },
 
   async getCategories(): Promise<ChallengeCategory[]> {
@@ -52,11 +78,21 @@ export const backendService = {
   async getFeedPosts(): Promise<FeedPost[]> {
     const { data, error } = await supabase
       .from('feed_posts')
-      .select('*')
+      .select(`
+        *,
+        profiles (
+          name
+        )
+      `)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Map the name from the join to the userName field 
+    return (data || []).map((post: any) => ({
+      ...post,
+      userName: post.profiles?.name || 'Unknown User'
+    }));
   },
 
   async getDailyActivity(): Promise<DailyActivity[]> {
